@@ -224,19 +224,19 @@ contract MasterChef is Ownable, ReentrancyGuard {
 		}
 		payOrLockupPendingBee(_pid);
 		if (_amount > 0) {
+			// to work properly with tokens with fees
+			uint256 balanceBefore = pool.lpToken.balanceOf(address(this));
 			pool.lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
-			if (address(pool.lpToken) == address(bee)) {
-				uint256 transferTax = _amount.mul(bee.transferTaxRate()).div(10000);
-				_amount = _amount.sub(transferTax);
-			}
 			if (pool.depositFeeBP > 0) {
 				uint256 depositFee = _amount.mul(pool.depositFeeBP).div(10000);
 				uint256 teamFee = depositFee.div(10); //10% for the team
-				pool.lpToken.safeTransfer(feeAddress, depositFee - teamFee);
+				pool.lpToken.safeTransfer(feeAddress, depositFee.sub(teamFee));
 				pool.lpToken.safeTransfer(teamAddress, teamFee);
-				user.amount = user.amount.add(_amount).sub(depositFee);
+				uint256 balanceAfter = pool.lpToken.balanceOf(address(this));
+				user.amount = balanceAfter - balanceBefore;
 			} else {
-				user.amount = user.amount.add(_amount);
+				uint256 balanceAfter = pool.lpToken.balanceOf(address(this));
+				user.amount = balanceAfter - balanceBefore;
 			}
 		}
 		user.rewardDebt = user.amount.mul(pool.accBeePerShare).div(1e12);
