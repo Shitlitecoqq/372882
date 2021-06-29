@@ -57,8 +57,6 @@ contract MasterChef is Ownable, ReentrancyGuard {
 	address public devAddress;
 	// Team address
 	address public teamAddress;
-	// Bidding Game Address
-	address public biddingGameAddress;
 	// Deposit Fee address
 	address public feeAddress;
 	// BEE tokens created per block.
@@ -233,10 +231,12 @@ contract MasterChef is Ownable, ReentrancyGuard {
 				pool.lpToken.safeTransfer(feeAddress, depositFee.sub(teamFee));
 				pool.lpToken.safeTransfer(teamAddress, teamFee);
 				uint256 balanceAfter = pool.lpToken.balanceOf(address(this));
-				user.amount = balanceAfter - balanceBefore;
+				uint256 balanceToAdd = balanceAfter.sub(balanceBefore);
+				user.amount = user.amount.add(balanceToAdd);
 			} else {
 				uint256 balanceAfter = pool.lpToken.balanceOf(address(this));
-				user.amount = balanceAfter - balanceBefore;
+				uint256 balanceToAdd = balanceAfter.sub(balanceBefore);
+				user.amount = user.amount.add(balanceToAdd);
 			}
 		}
 		user.rewardDebt = user.amount.mul(pool.accBeePerShare).div(1e12);
@@ -330,12 +330,6 @@ contract MasterChef is Ownable, ReentrancyGuard {
 		teamAddress = _teamAddress;
 	}
 
-	function setBiddingGameAddress(address _biddingGameAddress) public {
-		require(msg.sender == feeAddress, "setBiddingGameAddress: FORBIDDEN");
-		require(_biddingGameAddress != address(0), "setBiddingGameAddress: ZERO");
-		biddingGameAddress = _biddingGameAddress;
-	}
-
 	// Pancake has to add hidden dummy pools in order to alter the emission, here we make it simple and transparent to all.
 	function updateEmissionRate(uint256 _beePerBlock) public onlyOwner {
 		massUpdatePools();
@@ -371,7 +365,7 @@ contract MasterChef is Ownable, ReentrancyGuard {
 		}
 	}
 
-	function setStartBlock(uint256 _startBlock) external {
+	function setStartBlock(uint256 _startBlock) external onlyOwner {
 		require(block.number < startBlock, "It's too late to postpone mining. It has already started");
 		startBlock = _startBlock;
 	}

@@ -19,14 +19,14 @@ contract BeeToken is BEP20 {
 	// Burn address
 	address public constant BURN_ADDRESS = 0x000000000000000000000000000000000000dEaD;
 
-	// Max transfer amount rate in basis points. (default is 1% of total supply)
-	uint16 public maxTransferAmountRate = 100;
+	// Max transfer amount rate in basis points. (default is 0.5% of total supply)
+	uint16 public maxTransferAmountRate = 50;
 	// Addresses that excluded from antiWhale
 	mapping(address => bool) private _excludedFromAntiWhale;
 	// Automatic swap and liquify enabled
 	bool public swapAndLiquifyEnabled = false;
-	// Min amount to liquify. (default 500 BEEs)
-	uint256 public minAmountToLiquify = 500 ether;
+	// Min amount to liquify. (default 250 BEEs)
+	uint256 public minAmountToLiquify = 250 ether;
 	// The swap router, modifiable.
 	IUniswapV2Router02 public swapRouter;
 	// The trading pair
